@@ -1,4 +1,36 @@
 import json
+from fpdf import FPDF
+
+
+class PDF(FPDF):
+    def background(self):
+        if cardsPerPage == 9:
+            self.rect(paddingWidth, paddingHeight, cardWidth, cardHeight)
+            self.rect(paddingWidth + cardWidth, paddingHeight, cardWidth, cardHeight)
+            self.rect(paddingWidth + cardWidth * 2, paddingHeight, cardWidth, cardHeight)
+            self.rect(paddingWidth, paddingHeight + cardHeight, cardWidth, cardHeight)
+            self.rect(paddingWidth + cardWidth, paddingHeight + cardHeight, cardWidth, cardHeight)
+            self.rect(paddingWidth + cardWidth * 2, paddingHeight + cardHeight, cardWidth, cardHeight)
+            self.rect(paddingWidth, paddingHeight + cardHeight * 2, cardWidth, cardHeight)
+            self.rect(paddingWidth + cardWidth, paddingHeight + cardHeight * 2, cardWidth, cardHeight)
+            self.rect(paddingWidth + cardWidth * 2, paddingHeight + cardHeight * 2, cardWidth, cardHeight)
+
+
+    def fillCards(self):
+        if cardsPerPage == 9:
+            if cardsPerCard == 1:
+                self.set_font('Helvetica', '', 9)
+                self.set_xy(paddingWidth + 1, paddingHeight + 1)
+                self.cell(cardWidth - 2, 9, decks[0].main[0].name, align='L')
+                self.set_xy(paddingWidth + 1, paddingHeight + 1)
+                self.cell(cardWidth -2, 9, decks[0].main[0].cost, align='R', ln=1)
+                self.multi_cell(cardWidth - 2, 5, decks[0].main[0].text, align='L')
+                self.set_xy(paddingWidth, paddingHeight + cardHeight -5)
+                self.cell(cardWidth - 2, 5, decks[0].main[0].typeLine, align='L')
+                self.set_xy(paddingWidth + cardWidth - 17, paddingHeight + cardHeight -5)
+                self.cell(16, 5, decks[0].main[0].powTgh, align='R')
+
+
 
 
 class Deck:
@@ -33,6 +65,7 @@ class Card:
             self.powTgh = powTgh
         except KeyError:
             self.powTgh = ''
+
     def printCard(self):
         print(self.name, ' ', self.cost, '\n', self.typeLine, '\n', self.text, '\n', self.powTgh)
 
@@ -83,24 +116,27 @@ decklist2 = """4 Clever Lumimancer
 3 Homestead Courage
 1 Hallowed Respite
 """
+
 deckCount = 2
 
 decklists = [[decklistName1, decklist1], [decklistName2, decklist2]]
 
 if __name__ == "__main__":
+    # initialise JSON object
     f = open('AtomicCards.json', 'r', encoding='utf-8')
     mtgjson = json.loads(f.read())
-    # print(mtgjson['data']['Black Lotus'][0]['text'])
-    # turn text into qty+name lists
+
+    # make Deck object(s)
     d = 0
     decks = []
-    while d < len(decklists):
+    while d < len(decklists):  # grab each decklist and split it into a list of amounts and cards
         mainList = []
         for x in decklists[d][1].splitlines():
             mainList.extend(x.split(' ', 1))
         mainCards = []
         i = 0
-        while i < len(mainList):
+        while i < len(
+                mainList):  # make Card objects based on the amounts and cards (strings) in mainList, store them in a list mainCards
             cnt = mainList[i]
             i += 1
             j = 0
@@ -109,8 +145,24 @@ if __name__ == "__main__":
                 mainCards.append(Card(cardjson['name']))
                 j += 1
             i += 1
-        decks.append(Deck(decklists[d][0], mainCards))
+        decks.append(
+            Deck(decklists[d][0], mainCards))  # actually make the Deck object with the Card object list mainCards
         d += 1
 
-
+    # make the PDF
+    cardsPerCard = 1
+    pdfWidth = 210
+    pdfHeight = 297
+    cardWidth = 63.5
+    cardHeight = 88.9
+    pdfFormat = 'A4'
+    pdf = PDF(orientation='P', unit='mm', format=pdfFormat)
+    pdf.add_page()
+    if pdfFormat == 'A4':
+        cardsPerPage = 9
+        paddingWidth = (pdfWidth - (3 * cardWidth)) / 2
+        paddingHeight = (pdfHeight - (3 * cardHeight)) / 2
+    pdf.background()
+    pdf.fillCards()
+    pdf.output('test.pdf','F')
 
