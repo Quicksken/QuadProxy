@@ -15,23 +15,66 @@ class PDF(FPDF):
             self.rect(paddingWidth + cardWidth, paddingHeight + cardHeight * 2, cardWidth, cardHeight)
             self.rect(paddingWidth + cardWidth * 2, paddingHeight + cardHeight * 2, cardWidth, cardHeight)
 
+    def makePages(self):
+        if cardsPerCard == 1:
+            self.set_font('dejavu', '', 9)
+        for deck in decks:
+            for index, card in enumerate(deck.main):
+                if index % 9 == 0:
+                    pdf.add_page()
+                    pdfPages.append(Page(index / 9))
+                    pdf.background()
+                cP = pdfPages[int(index / 9)]
+                cS = cP.slots[index % 9]
+                self.set_xy(cS.sX, cS.sY)
+                self.cell(cardWidth - 12, 5, card.name, align='L')
+                self.cell(10, 5, card.cost, align='R', ln=1)
+                self.set_x(cS.sX)
+                self.multi_cell(cardWidth - 2, 4, card.text, align='L')
+                self.set_xy(cS.sX, cS.sY + cardHeight - 6)
+                self.cell(cardWidth - 18, 0, card.typeLine, align='L')
+                self.cell(16, 0, card.powTgh, align='R')
 
-    def fillCards(self):
+
+class Page:
+    def __init__(self, pnr):
+        self.pageNr = pnr
+        self.pX = paddingWidth
+        self.pY = paddingHeight
+        self.slotsCnt = cardsPerPage
+        self.slots = []
         if cardsPerPage == 9:
-            if cardsPerCard == 1:
-                self.set_font('Helvetica', '', 9)
-                self.set_xy(paddingWidth + 1, paddingHeight + 1)
-                self.cell(cardWidth - 2, 9, decks[0].main[0].name, align='L')
-                self.set_xy(paddingWidth + 1, paddingHeight + 1)
-                self.cell(cardWidth -2, 9, decks[0].main[0].cost, align='R', ln=1)
-                self.multi_cell(cardWidth - 2, 5, decks[0].main[0].text, align='L')
-                self.set_xy(paddingWidth, paddingHeight + cardHeight -5)
-                self.cell(cardWidth - 2, 5, decks[0].main[0].typeLine, align='L')
-                self.set_xy(paddingWidth + cardWidth - 17, paddingHeight + cardHeight -5)
-                self.cell(16, 5, decks[0].main[0].powTgh, align='R')
+            index = 0
+            while index < cardsPerPage:
+                self.slots.append(Slot(self, index))
+                index += 1
 
 
+class Slot:
+    def __init__(self, page, index):
+        self.index = index
+        self.sX = page.pX + 1
+        self.sY = page.pY + 1
+        if index == 0:
+            pass
+        if 0 < index < 3:
+            self.sX += cardWidth * (index % 3)
+        if 2 < index < 6:
+            self.sY += cardHeight
+            self.sX += cardWidth * (index % 3)
+        if 5 < index < 9:
+            self.sY += cardHeight * 2
+            self.sX += cardWidth * (index % 3)
+        #print(self.sX, self.sY)
 
+
+#
+# class Box:
+#     def __init__(self, slotIndex, boxType):
+#         self.slotIndex = slotIndex
+#         self.boxType = boxType
+#         if slotIndex = 0:
+#
 
 class Deck:
     def __init__(self, name, main, side=None):
@@ -40,13 +83,19 @@ class Deck:
         self.name = name
         self.main = main
         self.side = side
+        self.length = len(main)
+        if side is not None:
+            self.length += len(side)
 
 
 class Card:
-    def __init__(self, name='', cost='', typeLine='', text='', powTgh=''):
+    def __init__(self, name=''):
         self.name = name
         try:
             cost = cardjson['manaCost']
+            braces = ['{', '}']
+            for brace in braces:
+                cost = cost.replace(brace, '')
             self.cost = cost
         except KeyError:
             self.cost = ''
@@ -68,6 +117,17 @@ class Card:
 
     def printCard(self):
         print(self.name, ' ', self.cost, '\n', self.typeLine, '\n', self.text, '\n', self.powTgh)
+
+
+def countPages():
+    deckLengths = []
+    for deck in decks:
+        deckLengths.append(deck.length)
+    deckLengths.sort()
+    if deckLengths[-1] % cardsPerPage != 0:
+        return deckLengths[-1] / 9 + 1
+    else:
+        return deckLengths[-1] / 9
 
 
 decklistName1 = """4c Xan"""
@@ -135,8 +195,8 @@ if __name__ == "__main__":
             mainList.extend(x.split(' ', 1))
         mainCards = []
         i = 0
-        while i < len(
-                mainList):  # make Card objects based on the amounts and cards (strings) in mainList, store them in a list mainCards
+        while i < len(mainList):  # make Card objects based on the amounts and cards (strings) in mainList,
+            # store them in a list mainCards
             cnt = mainList[i]
             i += 1
             j = 0
@@ -157,12 +217,13 @@ if __name__ == "__main__":
     cardHeight = 88.9
     pdfFormat = 'A4'
     pdf = PDF(orientation='P', unit='mm', format=pdfFormat)
-    pdf.add_page()
+    pdf.add_font('dejavu', '', 'fonts/DejaVuSans-ExtraLight.ttf', True)
+    pdf.add_font('bellgothic', '', 'fonts/ufonts.com_bell-gothic-light.ttf', True)
     if pdfFormat == 'A4':
         cardsPerPage = 9
         paddingWidth = (pdfWidth - (3 * cardWidth)) / 2
         paddingHeight = (pdfHeight - (3 * cardHeight)) / 2
-    pdf.background()
-    pdf.fillCards()
-    pdf.output('test.pdf','F')
-
+    pageCount = countPages()
+    pdfPages = []
+    pdf.makePages()
+    pdf.output('test.pdf', 'F')

@@ -1,0 +1,72 @@
+At the beginning of your upkeep
+choose
+target
+opponent
+Until end of turn
+the top card of their/your library
+you may spend mana as though it were mana of any color
+legendary
+creature
+sorcery
+instant
+land
+enchantment
+aura
+planeswalker
+flashback
+search your library
+basic
+card
+tapped
+put that card/it onto the battlefield
+bottom of their/your library
+(anything between brackets)
+destroy
+target
+permanent
+nonland
+Forest
+Island
+Mountain
+Plains
+Swamp
+an opponent controls
+deals $int damage
+$cardname
+If a creature dealt damage this way would die this turn, exile it instead
+Foretell
+When $cardname enters the battlefield
+draw $int card(s)
+you may put a land card from your hand onto the battlefield
+battlefield
+graveyard
+library
+you lose $int life
+counter
+noncreature
+spell
+enters the battlefield tapped
+then shuffle
+snow
+this spell can't be countered
+at the beginning
+end step
+until end of turn
+creature token
+artifact token
+artifact
+sacrifice
+choose one
+activated abilities
+activated
+indestructible
+Whenever a creature you control deals combat damage
+player
+return (keep text) from your graveyard to the battlefield
+Magecraft — Whenever you cast or copy an instant or sorcery spell,
+Double faced names
+you may reveal that card
+transform $cardname
+Flurry of Blows - 
+Whenever you cast your second spell each turn
+base power and toughness
